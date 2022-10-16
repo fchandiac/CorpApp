@@ -1,16 +1,23 @@
 import { React, useState, useEffect } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete'
 import InfoIcon from '@mui/icons-material/Info'
+import AddCardIcon from '@mui/icons-material/AddCard'
+import QrCodeIcon from '@mui/icons-material/QrCode'
 import AppDataGrid from '../../AppDataGrid/AppDataGrid'
 import moment from 'moment'
 import { GridActionsCellItem } from '@mui/x-data-grid'
 import { useRouter } from 'next/router'
 import { Dialog, DialogActions, DialogContent, DialogTitle, Grid, TextField, Button, Autocomplete } from '@mui/material'
 import StudentDialog from '../../Dialogs/StudentDialog'
+import QrDialog from '../../Dialogs/QrDialog'
+
 
 const records = require('../../../promises/records')
 const students = require('../../../promises/students')
 const utils = require('../../../utils')
+const tokens = require('../../../promises/tokens')
+
+
 
 export default function StudentsGrid(props) {
     const { updateState } = props
@@ -19,7 +26,10 @@ export default function StudentsGrid(props) {
     const [rowData, setRowData] = useState({})
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
     const [openInfoDialog, setOpenInfoDialog] = useState(false)
+    const [openQrDialog, setOpenQrDialog] = useState(false)
     const [studentsList, setStudentsList] = useState([])
+    const [rut, setRut] = useState('')
+
 
     useEffect(() => {
         students.findAll()
@@ -34,7 +44,8 @@ export default function StudentsGrid(props) {
                     gender: item.gender,
                     age: utils.yearsOld(item.date_of_birth),
                     date_of_birth: item.date_of_birth,
-                    createdAt: moment(item.createdAt).format('DD-MM-YYYY HH:mm:ss')
+                    createdAt: moment(item.createdAt).format('DD-MM-YYYY HH:mm:ss'),
+                    
                 }))
                 setStudentsList(data)
 
@@ -46,17 +57,17 @@ export default function StudentsGrid(props) {
     const columns = [
         { field: 'id', headerName: 'Id', flex: .5, type: 'number', hide: true },
         { field: 'rut', headerName: 'Rut', flex: .8 },
-        { field: 'name', headerName: 'Nombre', flex: 2 },
-        { field: 'phone', headerName: 'Teléfono', flex: 1 },
-        { field: 'mail', headerName: 'Mail', flex: 1, hide: true  },
-        { field: 'address', headerName: 'Dirección', flex: 1, hide: true  },
-        { field: 'gender', headerName: 'Genero', flex: .7 },
+        { field: 'name', headerName: 'Nombre', flex: 1.8 },
+        { field: 'phone', headerName: 'Teléfono', flex: .7 },
+        { field: 'mail', headerName: 'Mail', flex: 1, hide: true },
+        { field: 'address', headerName: 'Dirección', flex: 1, hide: true },
+        { field: 'gender', headerName: 'Genero', flex: .5 },
         { field: 'age', headerName: 'Edad', flex: .5, type: 'number' },
         { field: 'createdAt', headerName: 'Ingreso', flex: .9, type: 'date', hide: true },
         {
             field: 'actions',
             headerName: '',
-            type: 'actions', flex: .5, getActions: (params) => [
+            type: 'actions', flex: .8, getActions: (params) => [
                 <GridActionsCellItem
                     sx={{ ...(router.query.profileDelete == 'false' && { display: 'none' }) }}
                     label='delete'
@@ -78,6 +89,20 @@ export default function StudentsGrid(props) {
                     }}
                 />,
                 <GridActionsCellItem
+                    sx={{ ...(router.query.profileDelete == 'false' && { display: 'none' }) }}
+                    label='Qr'
+                    icon={<QrCodeIcon />}
+                    onClick={() => {
+                        setRowData({
+                            rowId: params.id,
+                            id: params.row.id,
+                            name: params.row.name,
+                            rut: params.row.rut
+
+                        }), setOpenQrDialog(true)
+                    }}
+                />,
+                <GridActionsCellItem
                     label='info'
                     icon={<InfoIcon />}
                     onClick={() => {
@@ -92,11 +117,11 @@ export default function StudentsGrid(props) {
                             gender: params.row.gender,
                             age: params.row.age,
                             date_of_birth: params.row.date_of_birth,
-                            createdAt: params.row.createdAt
+                            createdAt: params.row.createdAt,
+                            tokensData: params.row.tokensData
                         }), setOpenInfoDialog(true)
                     }}
                 />
-
             ]
         }
     ]
@@ -123,6 +148,7 @@ export default function StudentsGrid(props) {
         <>
             <AppDataGrid rows={studentsList} columns={columns} title={'Estudiantes'} height='84vh' setGridApiRef={setGridApiRef} />
             <StudentDialog openDialog={openInfoDialog} setOpenDialog={setOpenInfoDialog} rowData={rowData} gridApiRef={gridApiRef} setRowData={setRowData} />
+            <QrDialog openDialog={openQrDialog} setOpenDialog={setOpenQrDialog} rut={rowData.rut} name={rowData.name} />
 
             <Dialog open={openDeleteDialog} maxWidth={'sm'} fullWidth>
                 <DialogTitle sx={{ paddingLeft: 2, paddingRight: 2 }}>
@@ -161,6 +187,24 @@ export default function StudentsGrid(props) {
                     <Button variant={'outlined'} onClick={() => { setOpenDeleteDialog(false) }} >cerrar</Button>
                 </DialogActions>
             </Dialog>
+
+           
         </>
     )
 }
+
+function tokensDataDefault() {
+    return ({
+        total: 0,
+        used: 0,
+        availables: 0,
+        expired: 0,
+    })
+}
+
+
+
+
+
+
+

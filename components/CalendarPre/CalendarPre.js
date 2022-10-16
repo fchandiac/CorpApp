@@ -3,12 +3,12 @@ import ArrowRightIcon from '@mui/icons-material/ArrowRight'
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft'
 import Month from './Month/Month'
 import moment from 'moment'
-import { Box, Button, Grid, IconButton, Typography } from '@mui/material'
+import { Box, Grid, IconButton, Typography } from '@mui/material'
 require('dayjs/locale/es')
 
 export default function Calendar(props) {
   const {header} = props
-  const [date, setDate] = useState(moment())
+  const [date, setDate] = useState(moment(new Date))
   const [month, setMonth] = useState(moment().month())
   const [year, setYear] = useState(moment().year())
 
@@ -21,11 +21,14 @@ export default function Calendar(props) {
 
   const backwardMonth = () => {
     setDate(moment(date).subtract(1, 'months'))
+    // setYear(date.year())
   }
 
   const forwardMonth = () => {
     setDate(moment(date).add(1, 'months'))
+    // setYear(date.year())
   }
+
 
   return (
     <>
@@ -42,6 +45,7 @@ export default function Calendar(props) {
             <IconButton onClick={forwardMonth}><ArrowRightIcon fontSize={'large'} /></IconButton>
           </Box>
         </Grid>
+
       </Grid>
 
 

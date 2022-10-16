@@ -20,11 +20,11 @@ export default function Layout(props) {
   const [log, setLog] = useState('')
   const id = 'simple-popper'
 
-  console.log(router.query.userId)
+  // console.log(router.query.userId)
 
   useEffect(() => {
     
-    if (userId == '') {
+    if (userId == '' || userId == undefined) {
       setLog('')
       router.push({
         pathname: '/',
@@ -192,6 +192,28 @@ export default function Layout(props) {
                 onClick={() => {
                   router.push({
                     pathname: '/lessons',
+                    query: {
+                      userId: userId,
+                      user: user,
+                      userName: userName,
+                      profileName: profileName,
+                      profileAdmin: profileAdmin,
+                      profileDelete: profileDelete,
+                      profileUpdate: profileUpdate
+                    }
+                  })
+                  setDrawerState(false)
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton>
+              <ListItemText
+                primary="Ventas"
+                onClick={() => {
+                  router.push({
+                    pathname: '/sales',
                     query: {
                       userId: userId,
                       user: user,

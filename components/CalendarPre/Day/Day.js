@@ -1,57 +1,139 @@
 import {
-    Dialog, Grid, IconButton, Paper, Typography, DialogContent, DialogActions, Button, DialogTitle,
-    TextField, FormControl, InputLabel, Select, MenuItem, Autocomplete
+    Dialog, Grid, IconButton, Paper, Typography, DialogContent,
+    DialogActions, Button, DialogTitle, TextField, Autocomplete
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
+import InfoIcon from '@mui/icons-material/Info'
 import moment from 'moment'
 import { React, useState, useEffect } from 'react'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
-import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import AppErrorSnack from '../../AppErrorSnack'
-require('moment/locale/es')
 import { useRouter } from 'next/router'
+// require('moment/locale/es')
 
-
-const records = require('../../../promises/records')
-const sessions = require('../../../promises/sessions')
 const lessons = require('../../../promises/lessons')
 const rooms = require('../../../promises/rooms')
-
-function sessionDataDefault() {
-    return ({
-        date: '',
-        start: '',
-        end: '',
-        lesson: { key: 0, label: '', id: 0 },
-        room: { key: 0, label: '', id: 0 }
-
-    })
-}
+const sessions = require('../../../promises/sessions')
+const records = require('../../../promises/records')
 
 export default function Day(props) {
     const { day, inCurrentMonth } = props
-    const router = useRouter()
     const [openDialog, setOpenDialog] = useState(false)
-    const [sessionData, setSessionData] = useState(sessionDataDefault())
-    const [inputLessonsValue, setInputLessonsValue] = useState('')
-    const [lessonsOptions, setLessonsOptions] = useState([])
-    const [inputRoomsValue, setInputRoomsValue] = useState('')
-    const [roomsOptions, setRoomsOptions] = useState([])
-    const date = moment(day).format('YYYY-MM-DD')
-    const [openErrorSnack, setOpenErrorSnack] = useState(false)
-    const [errorText, setErrorText] = useState('')
-    const [sessionsList, setSessionsList] = useState([])
     const [updateState, setUpdateState] = useState(false)
+    const [sessionsList, setSessionsList] = useState([])
+    // console.log(day)
 
     useEffect(() => {
-        sessions.findAllByDate(date)
+        sessions.findAllByDate(moment(day).format('YYYY-MM-DD'))
             .then(res => {
-                // console.log(res)
                 setSessionsList(res)
             })
             .catch(err => { console.error(err) })
     }, [day, updateState])
 
+  
+
+    return (
+        <>
+            <Paper sx={{ ...(inCurrentMonth === false && { background: '#eeeeee' }) }}>
+
+                <Grid direction="column">
+                    <Grid item>
+                        <Typography sx={{ paddingLeft: .1, paddingTop: 1 }} >{moment(day).format('DD')}</Typography>
+                    </Grid>
+                    <Grid direction="column" spacing={0}>
+                        {
+                            sessionsList.map(session => (
+                                <SessionCard
+                                    id={session.id}
+                                    date={session.date}
+                                    start={session.start}
+                                    end={session.end}
+                                    lesson={session.Lesson}
+                                    room={session.Room}
+                                    index={sessionsList.indexOf(session)}
+                                    updateState={updateState}
+                                    setUpdateState={setUpdateState}
+                                />
+                            ))
+                        }
+                    </Grid>
+                    <Grid item textAlign={'right'} paddingBottom={.5} paddingRight={.5}>
+                        <IconButton onClick={() => { setOpenDialog(true) }}><AddCircleIcon /></IconButton>
+                    </Grid>
+                </Grid>
+            </Paper>
+            <NewSessionDialog openDialog={openDialog} setOpenDialog={setOpenDialog} day={day} updateState={updateState} setUpdateState={setUpdateState} />
+        </>
+
+    )
+}
+
+function SessionCard(props) {
+    const { id, date, start, end, lesson, room, index, updateState, setUpdateState } = props
+    const router = useRouter()
+    const [bg, setBg] = useState((index % 2 == 0) ? '#b2ebf2' : '#80deea')
+
+
+    const destroy = () => {
+        sessions.destroy(id)
+            .then(() => {
+                records.create(
+                    'clases',
+                    'elimina',
+                    'clase ' + lesson.name + ' ' + moment(date).format('DD-MM-YYYY'),
+                    router.query.userId
+                )
+                .then(() => {
+                    setUpdateState(updateState ? false : true)
+                })
+                .catch(err => {console.error(err)})
+                
+            })
+            .catch(err => { console.error(err) })
+    }
+
+    return (
+        <Grid container sx={{ backgroundColor: bg }}>
+            <Grid item xs={8} sm={8} md={8}>
+                <Typography fontSize={15}>
+                    {lesson.name}
+                </Typography>
+                <Typography fontSize={11}>
+                    {start.slice(0, 5) + '-' + end.slice(0, 5)}
+                </Typography>
+                <Typography fontSize={11}>
+                    {room.name}
+                </Typography>
+            </Grid>
+            <Grid item textAlign={'right'} xs={4} sm={4} md={4}>
+                <IconButton
+                    sx={{ ...(router.query.profileDelete == 'false' && { display: 'none' }) }}
+                    onClick={destroy}
+                >
+                    <DeleteIcon sx={{ fontSize: 16, p: 0 }} />
+                </IconButton>
+                {/* <IconButton >
+                    <InfoIcon sx={{ fontSize: 18, p: 0 }} />
+                </IconButton> */}
+            </Grid>
+        </Grid>
+
+
+    )
+}
+
+function NewSessionDialog(props) {
+    const { openDialog, setOpenDialog, day, updateState, setUpdateState } = props
+    const router = useRouter()
+    const [sessionData, setSessionData] = useState(sessionDataDefault())
+    const [inputLessonsValue, setInputLessonsValue] = useState('')
+    const [lessonsOptions, setLessonsOptions] = useState([])
+    const [inputRoomsValue, setInputRoomsValue] = useState('')
+    const [roomsOptions, setRoomsOptions] = useState([])
+    const [openErrorSnack, setOpenErrorSnack] = useState(false)
+    const [textErrorSnack, setTextErrorSnack] = useState('')
+    
     useEffect(() => {
         lessons.findAll()
             .then(res => {
@@ -78,37 +160,39 @@ export default function Day(props) {
     }, [])
 
 
-
+    const closeDialog = () => {
+        setOpenDialog(false)
+        setSessionData(sessionDataDefault())
+    }
 
     const submit = (e) => {
         e.preventDefault()
-        var beginDateTime = date + ' ' + sessionData.start
-        var endDateTime = date + ' ' + sessionData.end
+        var beginDateTime = sessionData.date + ' ' + sessionData.start
+        var endDateTime = sessionData.date + ' ' + sessionData.end
         var beginningTime = moment(beginDateTime, 'YYYY-MM-DD HH:mm')
         var endTimeCompare = moment(endDateTime, 'YYYY-MM-DD HH:mm')
         if (sessionData.start == sessionData.end) {
-            setErrorText('La hora de inicio y fin no pueden ser iguales')
+            setTextErrorSnack('La hora de inicio y fin no pueden ser iguales')
             setOpenErrorSnack(true)
         } else if (endTimeCompare.isBefore(beginningTime)) {
-            setErrorText('La hora de fin no debe ser menor a la hora de inicio')
+            setTextErrorSnack('La hora de fin no debe ser menor a la hora de inicio')
             setOpenErrorSnack(true)
         } else {
-            sessions.findAllByRoomAndDate(sessionData.room.id, date)
+            sessions.findAllByRoomAndDate(sessionData.room.id, sessionData.date)
                 .then(sessionsOnRoom => {
                     var promisesList = []
                     sessionsOnRoom.forEach(session => {
-                        //moment(day).format('DD-MM-YYYY')
                         promisesList.push(
-                            PromiseCheckTime(date, session.start, session.end, sessionData.start, sessionData.end, session.Lesson.name, session.Room.name))
+                            PromiseCheckTime(moment(day).format('DD-MM-YYY'), session.start, session.end, sessionData.start, sessionData.end, session.Lesson.name, session.Room.name))
                     })
-                    console.log(date)
+                    console.log(sessionData.date)
                     Promise.all(promisesList)
                         .then(() => {
-                            // console.log(date)
+                            // console.log(sessionData.date)
                             sessions.create(
                                 sessionData.room.id,
                                 sessionData.lesson.id,
-                                date,
+                                moment(day).format('YYYY-MM-DD'),
                                 sessionData.start,
                                 sessionData.end
                             )
@@ -116,21 +200,20 @@ export default function Day(props) {
                                     records.create(
                                         'clases',
                                         'crea',
-                                        'clase ' + sessionData.lesson.label + ' ' + moment(date).format('DD-MM-YYYY'),
+                                        'clase ' + sessionData.lesson.label + ' ' + moment(sessionData.date).format('DD-MM-YYYY'),
                                         router.query.userId
                                     )
                                         .then(() => {
                                             setUpdateState(updateState ? false : true)
-                                            setOpenDialog(false)
-                                            setSessionData(sessionDataDefault())
+                                            closeDialog()
                                         })
                                 })
                                 .catch(err => { console.error(err) })
 
                         })
                         .catch(busyRoom => {
-                            //console.log(busyRoom)
-                            setErrorText('Sala ocupada por taller ' + busyRoom.lesson_name + ', de ' + busyRoom.startTime.slice(0, 5) + ' a ' + busyRoom.endTime.slice(0, 5))
+                            console.log(busyRoom)
+                            setTextErrorSnack('Sala ocupada por taller ' + busyRoom.lesson_name + ', de ' + busyRoom.startTime.slice(0, 5) + ' a ' + busyRoom.endTime.slice(0, 5))
                             setOpenErrorSnack(true)
                         })
 
@@ -140,45 +223,21 @@ export default function Day(props) {
 
     }
 
+    const test = () =>{
+        console.log(day)
+    }
+
 
     return (
         <>
-            <Paper sx={{ ...(inCurrentMonth === false && { background: '#eeeeee' }) }}>
-
-                <Grid spacing={1}>
-                    <Grid item>
-                        <Typography sx={{ paddingLeft: 2, paddingTop: 1 }} >{moment(day).format('DD')}</Typography>
-                    </Grid>
-                    <Grid direction="column" spacing={0}>
-                        {sessionsList.map(item => (
-                            <Grid item>
-                                <SessionCard
-                                    id={item.id}
-                                    lesson={item.Lesson}
-                                    room={item.Room}
-                                    date={date}
-                                    start={item.start}
-                                    end={item.end}
-                                    index={sessionsList.indexOf(item)}
-                                    updateState={updateState}
-                                    setUpdateState={setUpdateState}
-                                />
-                            </Grid>
-
-                        ))}
-                    </Grid>
-                    <Grid item textAlign={'right'} paddingBottom={.5} paddingRight={.5}>
-                        <IconButton onClick={() => { setOpenDialog(true) }}><AddCircleIcon /></IconButton>
-                    </Grid>
-                </Grid>
-            </Paper>
-            <Dialog open={openDialog} maxWidth={'xs'} fullWidth>
-                <DialogTitle sx={{ paddingLeft: 2, paddingRight: 2 }}>
-                    Nueva Clase
-                </DialogTitle>
+            <Dialog open={openDialog} maxWidth={'sm'} fullWidth>
                 <form onSubmit={submit}>
+                    <DialogTitle sx={{ paddingLeft: 2, paddingRight: 2 }}>
+                        {'Nueva Clase ' + moment(day).format('DD-MM-YYYY')}
+                    </DialogTitle>
                     <DialogContent sx={{ paddingLeft: 1, paddingRight: 1 }}>
-                        <Grid container spacing={1} direction="column" sx={{ p: 1 }}>
+
+                        <Grid container sx={{ p: 1 }} spacing={1} direction="column">
                             <Grid item>
                                 <Autocomplete
                                     inputValue={inputLessonsValue}
@@ -238,81 +297,30 @@ export default function Day(props) {
                                 />
                             </Grid>
                         </Grid>
+
                     </DialogContent>
                     <DialogActions sx={{ paddingRight: 2, paddingBottom: 2 }}>
                         <Button variant={'contained'} type='submit'>Guardar</Button>
-                        <Button variant={'outlined'} onClick={() => setOpenDialog(false)} >cerrar</Button>
+                        <Button variant={'outlined'} onClick={closeDialog} >cerrar</Button>
                     </DialogActions>
                 </form>
             </Dialog>
-            <AppErrorSnack openSnack={openErrorSnack} setOpenSnack={setOpenErrorSnack} errorText={errorText} />
-
+            <AppErrorSnack openSnack={openErrorSnack} setOpenSnack={setOpenErrorSnack} errorText={textErrorSnack} />
         </>
-
     )
 }
 
-function eventDataDefault() {
+
+
+function sessionDataDefault() {
     return ({
-        name: '',
-        description: '',
+        date: '',
         start: '',
         end: '',
-        office: ''
+        lesson: { key: 0, label: '', id: 0 },
+        room: { key: 0, label: '', id: 0 }
+
     })
-}
-
-
-function SessionCard(props) {
-    const router = useRouter()
-    const { id, lesson, room, date, start, end, index, updateState, setUpdateState } = props
-    const [bg, setBg] = useState((index % 2 == 0) ? '#b2ebf2' : '#80deea')
-
-
-    const destroy = () => {
-        sessions.destroy(id)
-        .then(()=>{
-            records.create(
-                'clases',
-                'elimina',
-                'clase ' + lesson.name + ' ' + moment(date).format('DD-MM-YYYY'),
-                router.query.userId
-            )
-            .then(() => {
-                setUpdateState((updateState? false: true))
-            })
-            .catch(err => {console.error(err)})
-        })
-        .catch(err => {console.error(err)})
-    }
-    return (
-        <>
-            <Grid container sx={{ backgroundColor: bg }}>
-                <Grid item xs={8} sm={8} md={8}>
-                    <Typography fontSize={15}>
-                        {lesson.name}
-                    </Typography>
-                    <Typography fontSize={11}>
-                        {room.name}
-                    </Typography>
-                    <Typography fontSize={11}>
-                        {start.slice(0, 5) + '-' + end.slice(0, 5)}
-                    </Typography>
-                </Grid>
-                <Grid item textAlign={'right'} xs={4} sm={4} md={4}>
-                    <IconButton
-                        // sx={{ ...(router.query.profileDelete == 'false' && { display: 'none' }) }}
-                        onClick={destroy}
-                    >
-                        <DeleteIcon sx={{ fontSize: 16, p: 0 }} />
-                    </IconButton>
-                    {/* <IconButton >
-                    <InfoIcon sx={{ fontSize: 18, p: 0 }} />
-                </IconButton> */}
-                </Grid>
-            </Grid>
-        </>
-    )
 }
 
 function checkTimeTest(date, startTime, endTime, checkTime) {

@@ -1,6 +1,7 @@
 import { React, useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import Calendar from '../components/Calendar'
+import Calendar from '../components/Calendar/Calendar'
+
 
 export default function calendar(props) {
     const { setPageTitle, setUserName, setUserId, setUser, setProfileName, setProfileAdmin, setProfileDelete, setProfileUpdate } = props
@@ -18,7 +19,7 @@ export default function calendar(props) {
     }, [])
   return (
     <>
-        <Calendar header={'Clases'}/>
+      <Calendar />
     </>
   )
 }

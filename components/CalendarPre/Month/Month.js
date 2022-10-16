@@ -8,7 +8,7 @@ export default function Month(props) {
     const { date, monthArray } = props
     return (
         <>
-            <Grid columns={7} container spacing={1}>
+            <Grid columns={7} container spacing={.1}>
                 <Grid item xs={1} sm={1} md={1} textAlign={'center'}>
                     <Typography>
                         Lunes
