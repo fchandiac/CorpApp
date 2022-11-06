@@ -1,11 +1,13 @@
 import {
     Dialog, Grid, IconButton, Paper, Typography, DialogContent, DialogActions, Button, DialogTitle,
-    TextField, FormControl, InputLabel, Select, MenuItem, Autocomplete
+    TextField, FormControl, InputLabel, Select, MenuItem, Autocomplete,
+    TableContainer, TableHead, TableRow, TableCell, TableBody
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import moment from 'moment'
 import { React, useState, useEffect } from 'react'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
+import InfoIcon from '@mui/icons-material/Info'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import AppErrorSnack from '../../AppErrorSnack'
 require('moment/locale/es')
@@ -16,6 +18,7 @@ const records = require('../../../promises/records')
 const sessions = require('../../../promises/sessions')
 const lessons = require('../../../promises/lessons')
 const rooms = require('../../../promises/rooms')
+const attendances = require('../../../promises/attendances')
 
 function sessionDataDefault() {
     return ({
@@ -266,24 +269,35 @@ function eventDataDefault() {
 function SessionCard(props) {
     const router = useRouter()
     const { id, lesson, room, date, start, end, index, updateState, setUpdateState } = props
+    const [openInfoDialog, setOpenInfoDialog] = useState(false)
+    const [lessonAttendance, setLessonAttendance] = useState([])
     const [bg, setBg] = useState((index % 2 == 0) ? '#b2ebf2' : '#80deea')
+
+    useEffect(() => {
+      attendances.findAllbySession(id)
+      .then(res => {
+        setLessonAttendance(res)
+      })
+      .catch(err => {console.error(err)})
+    }, [])
+    
 
 
     const destroy = () => {
         sessions.destroy(id)
-        .then(()=>{
-            records.create(
-                'clases',
-                'elimina',
-                'clase ' + lesson.name + ' ' + moment(date).format('DD-MM-YYYY'),
-                router.query.userId
-            )
             .then(() => {
-                setUpdateState((updateState? false: true))
+                records.create(
+                    'clases',
+                    'elimina',
+                    'clase ' + lesson.name + ' ' + moment(date).format('DD-MM-YYYY'),
+                    router.query.userId
+                )
+                    .then(() => {
+                        setUpdateState((updateState ? false : true))
+                    })
+                    .catch(err => { console.error(err) })
             })
-            .catch(err => {console.error(err)})
-        })
-        .catch(err => {console.error(err)})
+            .catch(err => { console.error(err) })
     }
     return (
         <>
@@ -306,11 +320,41 @@ function SessionCard(props) {
                     >
                         <DeleteIcon sx={{ fontSize: 16, p: 0 }} />
                     </IconButton>
-                    {/* <IconButton >
-                    <InfoIcon sx={{ fontSize: 18, p: 0 }} />
-                </IconButton> */}
+                    <IconButton onClick={() => { setOpenInfoDialog(true)}} >
+                        <InfoIcon sx={{ fontSize: 18, p: 0 }} />
+                    </IconButton>
                 </Grid>
             </Grid>
+            <Dialog open={openInfoDialog} maxWidth={'sm'} fullWidth>
+                <DialogTitle sx={{ paddingLeft: 2, paddingRight: 2 }}>
+                    {'Asistencia ' + lesson.name + ' ' + moment(date).format('DD-MM-YYYY')}
+                </DialogTitle>
+                <DialogContent sx={{ paddingLeft: 1, paddingRight: 1 }}>
+                <TableContainer component={Paper} sx={{ width: '100%', border: 0 }}>
+                    <TableHead>
+                        <TableRow >
+                            <TableCell sx={{ width: '20%' }}>Rut</TableCell>
+                            <TableCell sx={{ width: '40%' }}>Nombre</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {
+                            lessonAttendance.map((row) => (
+                                <TableRow key={row.id} sx={{ width: '100%', height:'12px' }}>
+                                    <TableCell>{row.Student.rut}</TableCell>
+                                    <TableCell>{row.Student.name}</TableCell>
+                                </TableRow>
+                            ))
+                        }
+
+                    </TableBody>
+                </TableContainer>
+
+                </DialogContent>
+                <DialogActions sx={{ paddingLeft: 2, paddingRight: 2 }}>
+                    <Button variant={'outlined'} onClick={() => { setOpenInfoDialog(false) }} >cerrar</Button>
+                </DialogActions>
+            </Dialog>
         </>
     )
 }

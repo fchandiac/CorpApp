@@ -43,7 +43,7 @@ export default function ProfilesGrid(props) {
     const columns = [
         { field: 'id', headerName: 'Id', flex: .5, type: 'number', hide: true },
         { field: 'name', headerName: 'Funcionario', flex: 2 },
-        { field: 'admin', headerName: 'Adminsitarción', flex: 1, type: 'boolean' },
+        { field: 'admin', headerName: 'Administración', flex: 1, type: 'boolean' },
         { field: 'delete', headerName: 'Eliminar', flex: 1, type: 'boolean' },
         { field: 'update', headerName: 'Actualizar', flex: 1, type: 'boolean' },
 

@@ -499,7 +499,6 @@ export default function StudentDialog(props) {
                                                     }}
                                                     renderInput={(params) => <TextField {...params} size={'small'} fullWidth />}
                                                 />
-
                                             </Grid>
 
                                             <Grid item textAlign={'right'}>

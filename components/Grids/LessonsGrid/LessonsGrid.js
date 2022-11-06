@@ -214,8 +214,8 @@ export default function LessonsGrid(props) {
                 <DialogTitle sx={{ paddingLeft: 2, paddingRight: 2 }}>
                     {'Lista del taller ' + rowData.name}
                 </DialogTitle>
-                <DialogContent ref={LessonsListPrint} sx={{ paddingLeft: 1, paddingRight: 1 }}>
-                    <LessonListGrid lessonId={rowData.id} lessonName={rowData.name} />
+                <DialogContent sx={{ paddingLeft: 1, paddingRight: 1 }}>
+                    <LessonListGrid lessonId={rowData.id} lessonName={rowData.name} LessonsListPrint={LessonsListPrint}/>
                 </DialogContent>
                 <DialogActions sx={{ paddingLeft: 2, paddingRight: 2 }}>
                     <ReactToPrint

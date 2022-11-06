@@ -5,18 +5,21 @@ import AppDataGrid from '../../AppDataGrid/AppDataGrid'
 import { GridActionsCellItem } from '@mui/x-data-grid'
 import { useRouter } from 'next/router'
 import moment from 'moment'
-import { Dialog, DialogActions, DialogContent, DialogTitle, Grid, TextField, Button, Autocomplete } from '@mui/material'
+import { Dialog, DialogActions, DialogContent, DialogTitle, Grid, TextField, Button, Autocomplete, Box, 
+    TableContainer, Paper, TableHead, TableRow, TableCell, TableBody, Typography } from '@mui/material'
 
 const lessonsLists = require('../../../promises/lessonslists')
 const records = require('../../../promises/records')
 
 export default function LessonListGrid(props) {
-    const { lessonId, lessonName } = props
+    const { lessonId, lessonName, LessonsListPrint } = props
     const router = useRouter()
     const [gridApiRef, setGridApiRef] = useState(null)
     const [rowData, setRowData] = useState({})
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
     const [lessonStudentsList, setLessonStudentsList] = useState([])
+    const [rowsPrint, setRowsPrint] = useState([])
+
 
 
     useEffect(() => {
@@ -29,11 +32,11 @@ export default function LessonListGrid(props) {
                     studentRut: item.Student.rut,
                     studentName: item.Student.name,
                     createdAt: moment(item.createdAt).format('DD-MM-YYYY HH:mm:ss')
-
                 }))
                 setLessonStudentsList(data)
             })
     }, [lessonId])
+
 
     const columns = [
         { field: 'id', headerName: 'Id', flex: .5, type: 'number', hide: true },
@@ -74,7 +77,7 @@ export default function LessonListGrid(props) {
                 records.create(
                     'lista de taller',
                     'elimina',
-                    'estudiante ' + rowData.studentName  + ' del taller ' + lessonName,
+                    'estudiante ' + rowData.studentName + ' del taller ' + lessonName,
                     router.query.userId
                 )
                     .then(() => {
@@ -90,6 +93,7 @@ export default function LessonListGrid(props) {
 
     return (
         <>
+
             <AppDataGrid rows={lessonStudentsList} columns={columns} title={'Estudiantes'} height='60vh' setGridApiRef={setGridApiRef} />
             <Dialog open={openDeleteDialog} maxWidth={'xs'} fullWidth>
                 <DialogTitle sx={{ paddingLeft: 2, paddingRight: 2 }}>
@@ -116,6 +120,33 @@ export default function LessonListGrid(props) {
                     <Button variant={'outlined'} onClick={() => { setOpenDeleteDialog(false) }} >cerrar</Button>
                 </DialogActions>
             </Dialog>
+
+            <Box ref={LessonsListPrint} sx={{ display: 'none', displayPrint: 'block' }}>
+                <Typography fontSize={18} paddingBottom={2}>
+                    {'Lista estudiantes ' + lessonName + ' ' + moment(new Date()).format('DD-MM-YYYY')}
+                </Typography>
+                <TableContainer sx={{ width: '100%', border: 0 }}>
+                    <TableHead sx={{backgroundColor: '#eceff1' }}>
+                        <TableRow >
+                            <TableCell sx={{ width: '20%' }}>Rut</TableCell>
+                            <TableCell sx={{ width: '40%' }}>Nombre</TableCell>
+                            <TableCell sx={{ width: '100%' }}>Fecha de Inscripción</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {
+                            lessonStudentsList.map((row) => (
+                                <TableRow key={row.id} sx={{ width: '100%', height:'12px' }}>
+                                    <TableCell>{row.studentRut}</TableCell>
+                                    <TableCell>{row.studentName}</TableCell>
+                                    <TableCell >{row.createdAt}</TableCell>
+                                </TableRow>
+                            ))
+                        }
+
+                    </TableBody>
+                </TableContainer>
+            </Box>
         </>
     )
 }

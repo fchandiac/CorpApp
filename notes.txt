@@ -1,3 +1,9 @@
+PENDIENTE: AUTOMATIC UPDATE EXPIRED TOKENS
+PENDIENTE: ATTENDANCE LIST BY SESSION
+PENDIENTE: UPLOAD TOTEM-APP
+PENDIENTE: CHANGE FONTZISE LESSON CARD ON STUDENT DIALOG
+
+
 npm i --save electron next react react-dom
 npm i @mui/material @emotion/react @emotion/styled --save
 npm i @mui/x-data-grid --save

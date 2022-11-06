@@ -20,10 +20,8 @@ export default function Layout(props) {
   const [log, setLog] = useState('')
   const id = 'simple-popper'
 
-  // console.log(router.query.userId)
 
   useEffect(() => {
-    
     if (userId == '' || userId == undefined) {
       setLog('')
       router.push({
@@ -45,8 +43,6 @@ export default function Layout(props) {
       setLog(userId)
     }
   }, [userId])
-
-
 
 
   return (
