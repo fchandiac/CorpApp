@@ -20,5 +20,29 @@ function yearsOld(date_of_birth) {
   return yearsOld
 }
 
+function renderMoneystr(value) {
+  if (value < 0) {
+      value = value.toString()
+      value = value.replace(/[^0-9]/g, '')
+      value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+      value = '$ -' + value
+      return value
+  } else {
+      value = value.toString()
+      value = value.replace(/[^0-9]/g, '')
+      value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+      value = '$ ' + value
+      return value
+  }
+}
 
-export { formatRut, yearsOld }
+function moneyToInt(value) {
+  value = value.replace('.', '') // Despejar Puntos
+  value = value.replace('$', '') // Despejar $
+  value = parseInt(value)
+  return value
+}
+
+
+
+export { formatRut, yearsOld, moneyToInt, renderMoneystr }

@@ -89,7 +89,7 @@ export default function StudentsGrid(props) {
                     }}
                 />,
                 <GridActionsCellItem
-                    sx={{ ...(router.query.profileDelete == 'false' && { display: 'none' }) }}
+                    // sx={{ ...(router.query.profileDelete == 'false' && { display: 'none' }) }}
                     label='Qr'
                     icon={<QrCodeIcon />}
                     onClick={() => {

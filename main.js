@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path');
 const url = require('url');
-const port = 3001
+const port = 3011
 
 ///// --------> CONFIG JSON APP <-------/////////
 const fs = require('fs')
@@ -42,6 +42,7 @@ const createWindow = () => {
 		height: 1080,
 		minWidth: 800,
 		minHeight: 600,
+		autoHideMenuBar: true,
 		webPreferences: {
 			contextIsolation: false,
 			nodeIntegration: true,

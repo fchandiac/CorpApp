@@ -1,8 +1,22 @@
-import { DataGrid, esES, GridToolbarQuickFilter, useGridApiContext} from '@mui/x-data-grid'
+import {
+    DataGrid,
+    esES,
+    GridToolbarQuickFilter,
+    useGridApiContext,
+    useGridSelector,
+    gridPageSelector,
+    gridPageCountSelector,
+    
+    
+} from '@mui/x-data-grid'
+
+
 import { React, useEffect } from 'react'
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import { Button, Stack, Typography, Box, IconButton } from '@mui/material'
+import TablePagination from '@mui/material/TablePagination'
+import Pagination from '@mui/material/Pagination'
+import { Button, Stack, Typography, Box, IconButton, Grid } from '@mui/material'
 import { saveAs } from 'file-saver'
 const ExcelJS = require('exceljs')
 import moment from 'moment';
@@ -10,9 +24,6 @@ import moment from 'moment';
 const theme = createTheme(
     esES,
 );
-
-
-
 
 function CustomToolbar(props) {
     const { gridHeader } = props
@@ -32,16 +43,22 @@ function CustomToolbar(props) {
     )
 }
 
+
+
 function CustomFooter(props) {
-    const { excelFileName, setGridApiRef} = props
+    const { excelFileName, setGridApiRef } = props
     const apiRef = useGridApiContext()
+    const page = useGridSelector(apiRef, gridPageSelector)
+    const pageCount = useGridSelector(apiRef, gridPageCountSelector)
 
 
     useEffect(() => {
         setGridApiRef(apiRef)
     }, [])
-    
+
     const exportExcel = () => {
+
+        console.log(pageCount)
         const workbook = new ExcelJS.Workbook()
         var sheet = workbook.addWorksheet('sheet')
 
@@ -62,9 +79,9 @@ function CustomFooter(props) {
 
         workbook.xlsx.writeBuffer().then(function (buffer) {
             //console.log(buffer);
-            const blob = new Blob([buffer], { type: "applicationi/xlsx" });
-            saveAs(blob, fileName);
-        });
+            const blob = new Blob([buffer], { type: "applicationi/xlsx" })
+            saveAs(blob, fileName)
+        })
     }
 
     return (
@@ -81,6 +98,69 @@ function CustomFooter(props) {
     )
 }
 
+function CustomPagination(props) {
+    const { excelFileName, setGridApiRef } = props
+    const apiRef = useGridApiContext()
+    const page = useGridSelector(apiRef, gridPageSelector)
+    const pageCount = useGridSelector(apiRef, gridPageCountSelector)
+
+    useEffect(() => {
+        setGridApiRef(apiRef)
+    }, [])
+
+    
+
+    const exportExcel = () => {
+
+        console.log(pageCount)
+        const workbook = new ExcelJS.Workbook()
+        var sheet = workbook.addWorksheet('sheet')
+
+        var columns = apiRef.current.getAllColumns().map(column => ({
+            header: column.headerName,
+            key: column.field,
+            width: convertFlexGridToExcel(column.flex)
+        }))
+
+        sheet.columns = columns
+
+        var rows = Array.from(apiRef.current.getVisibleRowModels())
+        rows.map(row => {
+            // console.log(row[1])
+            sheet.addRow(row[1])
+        })
+        var fileName = excelFileName + '_' + moment(Date.now()).format('DD-MM-YYYY') + '.xlsx'
+
+        workbook.xlsx.writeBuffer().then(function (buffer) {
+            //console.log(buffer);
+            const blob = new Blob([buffer], { type: "applicationi/xlsx" })
+            saveAs(blob, fileName)
+        })
+    }
+
+    return (
+        <Box sx={{ p: 1 }}>
+            <Stack
+                direction="row-reverse"
+                justifyContent="space-between"
+                alignItems="center"
+                spacing={2}
+            >
+                <Button onClick={exportExcel}><FileDownloadIcon /> excel</Button>
+                <Pagination
+                    color="primary"
+                    count={pageCount}
+                    page={page + 1}
+                    
+                    onChange={(event, value) => apiRef.current.setPage(value - 1)}
+                />
+                {/* <Typography>{'khgkjg'}</Typography> */}
+            </Stack>
+        </Box>
+
+    );
+}
+
 export default function AppDataGrid(props) {
     const { rows, columns, title, height, setGridApiRef } = props
     return (
@@ -90,18 +170,19 @@ export default function AppDataGrid(props) {
                     localeText={esESGrid}
                     rows={rows}
                     columns={columns}
-                    components={{ Toolbar: CustomToolbar, Footer: CustomFooter }}
+                    pagination
+                    components={{ Toolbar: CustomToolbar, Pagination: CustomPagination }}
                     getRowHeight={() => 'auto'}
                     componentsProps={{
                         toolbar: {
                             showQuickFilter: true,
-                            gridHeader: title
+                            gridHeader: title,
                         },
-                        footer: {
+                        pagination: {
                             excelFileName: title,
                             setGridApiRef: setGridApiRef
-                            // apiRef: apiRef
                         }
+
                     }}
                 />
             </ThemeProvider>
@@ -194,8 +275,8 @@ const esESGrid = {
     columnHeaderFiltersLabel: 'Mostrar filtros',
     columnHeaderSortIconLabel: 'Ordenar',
     // Rows selected footer text
-    footerRowSelected: count => count > 1 ? `${count.toLocaleString()} filas seleccionadas` : `${count.toLocaleString()} fila seleccionada`,
-    // Total row amount footer text
+    //footerRowSelected: count => count > 1 ? `${count.toLocaleString()} filas seleccionadas` : `${count.toLocaleString()} fila seleccionada`,
+    footerRowSelected: count => count > 1 ? '': '',
     footerTotalRows: 'Filas Totales:',
     // Total visible row amount footer text
     footerTotalVisibleRows: (visibleCount, totalCount) => `${visibleCount.toLocaleString()} de ${totalCount.toLocaleString()}`,
@@ -209,7 +290,7 @@ const esESGrid = {
     booleanCellTrueLabel: 'Si',
     booleanCellFalseLabel: 'No',
     // Actions cell more text
-    actionsCellMore: 'más' // Column pinning text
+    actionsCellMore: 'más', // Column pinning text
     // pinToLeft: 'Pin to left',
     // pinToRight: 'Pin to right',
     // unpin: 'Unpin',
@@ -229,3 +310,4 @@ const esESGrid = {
     // rowReorderingHeaderName: 'Row reordering',
 
 }
+

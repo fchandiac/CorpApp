@@ -199,6 +199,30 @@ function updateStateByExpiration() {
 
 
 
+
+function findAllBySale(id) {
+    let data = {id}
+    const token = new Promise((resolve, reject) => {
+        fetch(server_url + 'tokens/findAllBySale', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' }
+        }).then(res => {
+            res.json().then(res => {
+                if (res.code === 0) {
+                    reject(res.data)
+                } else {
+                    resolve(res.data)
+                }
+            })
+        }).catch(err => { console.log(err) })
+    })
+
+    return token
+}
+
+
+
 export { 
     create, 
     findAllByStudent, 
@@ -209,4 +233,5 @@ export {
     findAllAvailablesByStudent,
     findAllExpiredByStudent,
     updateStateByExpiration,
+    findAllBySale
 }

@@ -203,7 +203,7 @@ export default function Layout(props) {
               />
             </ListItemButton>
           </ListItem>
-          <ListItem disablePadding>
+          <ListItem disablePadding sx={{ ...(router.query.profileAdmin == 'false' && { display: 'none' }) }}>
             <ListItemButton>
               <ListItemText
                 primary="Ventas"
@@ -247,7 +247,7 @@ export default function Layout(props) {
               />
             </ListItemButton>
           </ListItem>
-          <ListItem disablePadding>
+          <ListItem disablePadding sx={{ ...(router.query.profileAdmin == 'false' && { display: 'none' }) }}>
             <ListItemButton>
               <ListItemText
                 primary="Usuarios"
@@ -270,7 +270,7 @@ export default function Layout(props) {
               />
             </ListItemButton>
           </ListItem>
-          <ListItem disablePadding>
+          <ListItem disablePadding sx={{ ...(router.query.profileAdmin == 'false' && { display: 'none' }) }}>
             <ListItemButton>
               <ListItemText
                 primary="Registros"
@@ -292,13 +292,35 @@ export default function Layout(props) {
               />
             </ListItemButton>
           </ListItem>
-          <ListItem disablePadding>
+          <ListItem disablePadding sx={{ ...(router.query.profileAdmin == 'false' && { display: 'none' }) }}>
             <ListItemButton>
               <ListItemText
                 primary="Configuración"
                 onClick={() => {
                   router.push({
                     pathname: '/config',
+                    query: {
+                      userId: userId,
+                      user: user,
+                      userName: userName,
+                      profileName: profileName,
+                      profileAdmin: profileAdmin,
+                      profileDelete: profileDelete,
+                      profileUpdate: profileUpdate
+                    }
+                  })
+                  setDrawerState(false)
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding sx={{ ...(router.query.profileAdmin == 'false' && { display: 'none' }) }}>
+            <ListItemButton>
+              <ListItemText
+                primary="Info Versión"
+                onClick={() => {
+                  router.push({
+                    pathname: '/version',
                     query: {
                       userId: userId,
                       user: user,
@@ -325,4 +347,4 @@ export default function Layout(props) {
 }
 
 
-
+// sx={{ ...(router.query.profileDelete == 'false' && { display: 'none' }) }}

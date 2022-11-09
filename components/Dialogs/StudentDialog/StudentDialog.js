@@ -194,7 +194,7 @@ export default function StudentDialog(props) {
                             'ventas',
                             'vende',
                             saleData.quanty + ' créditos taller ' + saleData.lesson.label + ' ' + rowData.name,
-                            router.userId
+                            router.query.userId
                         )
                             .then(() => {
                                 setSaleData(saleDataDefault())

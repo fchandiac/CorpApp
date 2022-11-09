@@ -5,35 +5,62 @@ import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import moment from 'moment'
 import AppErrorSnack from '../components/AppErrorSnack'
 import SalesGrid from '../components/Grids/SalesGrid/SalesGrid'
+import { useRouter } from 'next/router'
+import SalesTab from '../components/Tabs/SalesTab'
+import SalesListGrid from '../components/Grids/SalesListGrid/SalesListGrid'
+import TokensGrid from '../components/Grids/TokensGrid'
 
 const lessons = require('../promises/lessons')
 const salesPr = require('../promises/sales')
+const tokens = require('../promises/tokens')
 
-export default function sales() {
+export default function sales(props) {
+  const { setPageTitle, setUserName, setUserId, setUser, setProfileName, setProfileAdmin, setProfileDelete, setProfileUpdate } = props
+  const router = useRouter()
   const [reportData, setReportData] = useState([])
   const [configData, setConfigData] = useState(configDataDefault())
   const [titleGrid, setTitleGrid] = useState('Ventas')
 
+  useEffect(() => {
+    setUserName(router.query.userName)
+    setUserId(router.query.userId)
+    setUser(router.query.user)
+    setProfileName(router.query.profileName)
+    setProfileAdmin(router.query.profileAdmin)
+    setProfileDelete(router.query.profileDelete)
+    setProfileUpdate(router.query.profileUpdate)
+    setPageTitle('Ventas')
+  }, [])
+
 
   useEffect(() => {
-    if(configData.lesson.label== ''){
-      setTitleGrid('Ventas')
+    if (configData.lesson.label == '') {
+      setTitleGrid('Reporte de ventas')
     } else {
-      setTitleGrid(configData.lesson.label + ' ' + moment(configData.start).format('DD-MM-YYYY') + ' al ' + moment(configData.end).format('DD-MM-YYYY'))
+      setTitleGrid('ventas ' + configData.lesson.label + ' ' + moment(configData.start).format('DD-MM-YYYY') + ' al ' + moment(configData.end).format('DD-MM-YYYY'))
     }
   }, [reportData])
-  
+
 
   return (
     <>
-      <Grid container spacing={1}>
-        <Grid item xs={4} sm={4} md={4}>
-          <ConfigGridForm setReportData={setReportData} configData={configData} setConfigData={setConfigData}/>
-        </Grid>
-        <Grid item xs={8} sm={8} md={8}>
-          <SalesGrid reportData={reportData} title={titleGrid}/>
-        </Grid>
-      </Grid>
+      <SalesTab
+        reportContent={
+          <Grid container spacing={1}>
+            <Grid item xs={4} sm={4} md={4}>
+              <ConfigGridForm setReportData={setReportData} configData={configData} setConfigData={setConfigData} />
+            </Grid>
+            <Grid item xs={8} sm={8} md={8}>
+              <SalesGrid reportData={reportData} title={titleGrid} />
+            </Grid>
+          </Grid>
+        }
+        salesContent={
+          <SalesListGrid />
+        }
+        tokensContent={
+          <TokensGrid />
+        } />
     </>
   )
 }
@@ -48,10 +75,10 @@ function configDataDefault() {
 }
 
 function ConfigGridForm(props) {
-  const {setReportData, configData, setConfigData} = props
+  const { setReportData, configData, setConfigData } = props
   const [inputLessonsValue, setInputLessonsValue] = useState('')
   const [lessonsOptions, setLessonsOptions] = useState([])
-  
+
   const [errorText, setErrorText] = useState('')
   const [openErrorSnack, setOpenErrorSnack] = useState(false)
 
@@ -69,7 +96,7 @@ function ConfigGridForm(props) {
   }, [])
   const submit = (e) => {
     e.preventDefault()
-    if(checkDates(configData.start, configData.end) == true){
+    if (checkDates(configData.start, configData.end) == true) {
       setErrorText('La fecha de inicio no puede ser posterior a la de fin')
       setOpenErrorSnack(true)
     } else {
@@ -78,10 +105,10 @@ function ConfigGridForm(props) {
         configData.start,
         configData.end
       )
-      .then(res => {
-        setReportData(res)
-      })
-      .catch(err => {console.error(err)})
+        .then(res => {
+          setReportData(res)
+        })
+        .catch(err => { console.error(err) })
     }
   }
   return (
@@ -143,10 +170,28 @@ function ConfigGridForm(props) {
   )
 }
 
-function checkDates(start, end){
+function checkDates(start, end) {
   var startDate = moment(start)
   var endDate = moment(end)
   var result = endDate.isBefore(startDate, 'date')
-  
+
   return result
 }
+
+
+// tokens.findAllBySale(1152)
+//            .then(res => {
+//             let promiseList = []
+//             res.map(item => {
+//               promiseList.push(tokens.destroy(item.id))
+//             })
+//             Promise.all(promiseList)
+//             .then(res => {
+//               ///PROMISE SALE DESTROY
+//               console.log('DELETE: ' + res)
+
+//             })
+//             .catch(err => {console.error(err)})
+//             //console.log(res)
+//           })
+//            .catch(err => {console.error(err)})

@@ -8,6 +8,7 @@ import moment from 'moment'
 import { React, useState, useEffect } from 'react'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import InfoIcon from '@mui/icons-material/Info'
+import ListAltIcon from '@mui/icons-material/ListAlt'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import AppErrorSnack from '../../AppErrorSnack'
 require('moment/locale/es')
@@ -315,13 +316,13 @@ function SessionCard(props) {
                 </Grid>
                 <Grid item textAlign={'right'} xs={4} sm={4} md={4}>
                     <IconButton
-                        // sx={{ ...(router.query.profileDelete == 'false' && { display: 'none' }) }}
+                        sx={{ ...(router.query.profileDelete == 'false' && { display: 'none' }) }}
                         onClick={destroy}
                     >
                         <DeleteIcon sx={{ fontSize: 16, p: 0 }} />
                     </IconButton>
                     <IconButton onClick={() => { setOpenInfoDialog(true)}} >
-                        <InfoIcon sx={{ fontSize: 18, p: 0 }} />
+                        <ListAltIcon sx={{ fontSize: 18, p: 0 }} />
                     </IconButton>
                 </Grid>
             </Grid>

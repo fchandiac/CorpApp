@@ -16,7 +16,7 @@ export default function RecordsGrid() {
             table: item.table,
             action: item.action,
             description: item.description,
-            userName: item.User.name,
+            userName: (item.User == null ? 'sin dato': item.User.name),
             createdAt: moment(item.createdAt).format('DD-MM-YYYY HH:mm:ss')
         }))
         setRecordsList(data)
